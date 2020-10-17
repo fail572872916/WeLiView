@@ -15,6 +15,9 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MoveAndCropRectView extends View {
 
     // 绘制 损害框和损害名称
@@ -42,6 +45,10 @@ public class MoveAndCropRectView extends View {
     public static final int RIGHT_CORNER = 0;
     //圆角
     public static final int ROUND_CORNER = 1;
+
+    //线中间添加点的集合
+    List<Point> addPointList = new ArrayList<>();
+    List<Point> pointList = new ArrayList<>();
 
     // Remove Rect
     private int MODE;
@@ -110,9 +117,9 @@ public class MoveAndCropRectView extends View {
         mCirclePaint.setColor(Color.RED);
         mCirclePaint.setAntiAlias(true);
 
-       mAddPaint.setStyle(Paint.Style.FILL);
-       mAddPaint.setColor(Color.BLUE);
-       mAddPaint.setAntiAlias(true);
+        mAddPaint.setStyle(Paint.Style.FILL);
+        mAddPaint.setColor(Color.BLUE);
+        mAddPaint.setAntiAlias(true);
 
         mOldPaint.setStyle(Paint.Style.STROKE);
         mOldPaint.setColor(Color.GRAY);
@@ -177,6 +184,8 @@ public class MoveAndCropRectView extends View {
         canvas.drawLine(oldEndX + EDGE_WIDTH, oldStartY - EDGE_WIDTH,
                 oldEndX + EDGE_WIDTH, oldEndY + EDGE_WIDTH, mOldPaint);/*right |*/
 
+
+
         //回执定点之间的节点
         canvas.drawCircle(startX, startY, 15, mCirclePaint);
         canvas.drawCircle(endX, endY, 15, mCirclePaint);
@@ -184,20 +193,36 @@ public class MoveAndCropRectView extends View {
         canvas.drawCircle(endX, startY, 15, mCirclePaint);
 
 
-        float a1 = ((endX -startX)/2)+startX;
-        float a2=((endY-startY)/2)+startY;
 
 
 
 
-        Log.d("sssss",a2+"__"+startX+"______"+endX);
+        float a1 = ((endX - startX) / 2) + startX;
+        float a2 = ((endY - startY) / 2) + startY;
+        Log.d("sssss", a2 + "__" + startX + "______" + endX);
+//        canvas.drawCircle(a1, startY, 20, mAddPaint);
+//        canvas.drawCircle(endX, a2, 20, mAddPaint);
+//        canvas.drawCircle(a1, endY, 20, mAddPaint);
+//        canvas.drawCircle(startX, a2, 20, mAddPaint);
 
-        canvas.drawCircle(a1, startY,20, mAddPaint);
-        canvas.drawCircle(endX, a2,20, mAddPaint);
-        canvas.drawCircle(a1, endY,20, mAddPaint);
-        canvas.drawCircle(startX, a2,20, mAddPaint);
+        addPointList.add(new Point(a1, startY));
+        addPointList.add(new Point(endX, a2));
+        addPointList.add(new Point(a1, endY));
+        addPointList.add(new Point(startX, a2));
 
 
+        pointList.add(new Point(startX, startY));
+        pointList.add(new Point(a1, startY));
+        pointList.add(new Point(endX, endY));
+        pointList.add(new Point(endX, a2));
+        pointList.add(new Point(startX, endY));
+        pointList.add(new Point(a1, endY));
+        pointList.add(new Point(endX, startY));
+        pointList.add(new Point(startX, a2));
+
+        for (Point point : addPointList) {
+            canvas.drawCircle(point.getPointX(), point.getPointY(), 15, mAddPaint);
+        }
 
     }
 
@@ -243,6 +268,7 @@ public class MoveAndCropRectView extends View {
                 mPaint.setColor(Color.GRAY);
                 mOldPaint.setColor(Color.TRANSPARENT);
                 postInvalidate();
+                addPoint(memoryX, memoryY);
                 break;
             default:
                 break;
@@ -295,6 +321,49 @@ public class MoveAndCropRectView extends View {
             default:
                 break;
         }
+    }
+
+    private void addPoint(float currentX, float currentY) {
+
+        Log.d("aaaaaa", "____________________________"+pointList.size());
+        for (Point point : addPointList) {
+
+            if (Math.abs(currentX - point.getPointX()) < 15 && Math.abs(currentY - point.getPointY()) < 15) {
+
+                List<Point> list = getAdjoinPoint(point);
+                float c=((list.get(1).getPointX()-list.get(0).getPointX())/2)+list.get(0).getPointX();
+                float d=((list.get(2).getPointX()-list.get(1).getPointX())/2)+list.get(1).getPointX();
+
+                addPointList.add(1,new Point(c,list.get(0).getPointY()));
+                addPointList.add(3,new Point(d,list.get(0).getPointY()));
+                postInvalidate();
+                return;
+//                for (Point point1 : list) {
+//                    Log.d("aaaaaa", point1+"_______");
+//                    float a1 = ((endX - startX) / 2) + startX;
+//
+//
+//                }
+
+            }
+        }
+
+
+    }
+
+    private List<Point> getAdjoinPoint(Point point) {
+
+        List<Point> list = new ArrayList<>();
+        for (int i = 0; i < pointList.size(); i++) {
+            if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < 15 && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < 15) {
+
+                list.add(pointList.get(i - 1));
+                list.add(pointList.get(i));
+                list.add(pointList.get(i + 1));
+            }
+        }
+
+        return list;
     }
 
     /*刷新矩形的坐标*/
@@ -405,41 +474,6 @@ public class MoveAndCropRectView extends View {
         this.mCornerAngle = cornerAngle;
     }
 
-    // 绘制 损害框(直角矩形框)
-    private void drawRect(Canvas canvas) {
-
-        canvas.drawRect(mRectF, mPaint);
-
-        // 绘制名称 和 概率
-//  final String labelString =
-//    !TextUtils.isEmpty(mTitle)
-//      ? String.format("%s %.2f", mTitle, (100 * mConfidence))
-//      : String.format("%.2f", (100 * mConfidence));
-
-        // 在 直角矩形框 上写字
-//  mBorderedText.drawText(canvas,
-//    mRectF.left,
-//    mRectF.top, labelString + "%",
-//    mPaint);
-    }
-
-    // 绘制 损害框(圆角矩形框)
-    private void drawRoundRect(Canvas canvas) {
-        float cornerSize = Math.min(mRectF.width(), mRectF.height()) / 8.0f;
-        canvas.drawRoundRect(mRectF, cornerSize, cornerSize, mPaint);
-
-        // 绘制名称 和 概率
-//  final String labelString =
-//    !TextUtils.isEmpty(mTitle)
-//      ? String.format("%s %.2f", mTitle, (100 * mConfidence))
-//      : String.format("%.2f", (100 * mConfidence));
-
-        // 在 圆角矩形框 上写字
-//  mBorderedText.drawText(canvas,
-//    mRectF.left + cornerSize,
-//    mRectF.top, labelString + "%",
-//    mPaint);
-    }
 
     public void setLocationListener(onLocationListener mLocationListener) {
         this.mLocationListener = mLocationListener;
