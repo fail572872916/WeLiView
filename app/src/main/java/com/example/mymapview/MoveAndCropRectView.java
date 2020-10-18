@@ -16,7 +16,9 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MoveAndCropRectView extends View {
 
@@ -56,6 +58,7 @@ public class MoveAndCropRectView extends View {
     private static final int MODE_INSIDE = 0x000000bb;/*187*/
     private static final int MODE_POINT = 0X000000cc;/*204*/
     private static final int MODE_ILLEGAL = 0X000000dd;/*221*/
+    private static final int MODE_ADD = 0X000000ee;/*221*/
 
     private float startX;/*start X location*/
     private float startY;/*start Y location*/
@@ -185,43 +188,46 @@ public class MoveAndCropRectView extends View {
                 oldEndX + EDGE_WIDTH, oldEndY + EDGE_WIDTH, mOldPaint);/*right |*/
 
 
-
         //回执定点之间的节点
         canvas.drawCircle(startX, startY, 15, mCirclePaint);
+        canvas.drawCircle(endX, startY, 15, mCirclePaint);
         canvas.drawCircle(endX, endY, 15, mCirclePaint);
         canvas.drawCircle(startX, endY, 15, mCirclePaint);
-        canvas.drawCircle(endX, startY, 15, mCirclePaint);
 
 
-        addPointList.clear();
-//        if(MODE!=MODE_INSIDE) {
+        if (MODE == MODE_INSIDE) {
+            addPointList.clear();
+        }
+//
 
-            float a1 = ((endX - startX) / 2) + startX;
-            float a2 = ((endY - startY) / 2) + startY;
-            Log.d("sssss", a2 + "__" + startX + "______" + endX);
-//        canvas.drawCircle(a1, startY, 20, mAddPaint);
-//        canvas.drawCircle(endX, a2, 20, mAddPaint);
-//        canvas.drawCircle(a1, endY, 20, mAddPaint);
-//        canvas.drawCircle(startX, a2, 20, mAddPaint);
-
-            addPointList.add(new Point(a1, startY));
-            addPointList.add(new Point(endX, a2));
-            addPointList.add(new Point(a1, endY));
-            addPointList.add(new Point(startX, a2));
+        float a1 = ((endX - startX) / 2) + startX;
+        float a2 = ((endY - startY) / 2) + startY;
 
 
+        addPointList.add(new Point(a1, startY));
+        addPointList.add(new Point(endX, a2));
+        addPointList.add(new Point(a1, endY));
+        addPointList.add(new Point(startX, a2));
+
+//        Log.d("sssss", a2 + "__" + startX + "______" + endX);
+        Log.d("sssss", "__" + addPointList);
+        if (MODE != MODE_ADD) {
             pointList.add(new Point(startX, startY));
             pointList.add(new Point(a1, startY));
-            pointList.add(new Point(endX, endY));
+            pointList.add(new Point(endX, startY));
+
             pointList.add(new Point(endX, a2));
             pointList.add(new Point(startX, endY));
             pointList.add(new Point(a1, endY));
-            pointList.add(new Point(endX, startY));
+            pointList.add(new Point(endX, endY));
             pointList.add(new Point(startX, a2));
-//        }
-            for (Point point : addPointList) {
-                canvas.drawCircle(point.getPointX(), point.getPointY(), 15, mAddPaint);
-            }
+        }
+        for (Point point : pointList) {
+            Log.d("add", "____________________________" + point);
+        }
+        for (Point point : addPointList) {
+            canvas.drawCircle(point.getPointX(), point.getPointY(), 20, mAddPaint);
+        }
 
 
     }
@@ -268,7 +274,9 @@ public class MoveAndCropRectView extends View {
                 mPaint.setColor(Color.GRAY);
                 mOldPaint.setColor(Color.TRANSPARENT);
                 postInvalidate();
-                addPoint(memoryX, memoryY);
+                if (MODE != MODE_INSIDE) {
+                    addPoint(memoryX, memoryY);
+                }
                 break;
             default:
                 break;
@@ -324,27 +332,37 @@ public class MoveAndCropRectView extends View {
     }
 
     private void addPoint(float currentX, float currentY) {
+        MODE = MODE_ADD;
+//        Log.d("aaaaaa", "____________________________" + pointList.size());
+        for (Point point : addPointList) {
+            Log.d("add", "____________________________" + point);
 
-        Log.d("aaaaaa", "____________________________"+pointList.size());
+        }
+        Log.d("add", "____________________________" + new Point(currentX, currentY));
         for (Point point : addPointList) {
 
-            if (Math.abs(currentX - point.getPointX()) < 15 && Math.abs(currentY - point.getPointY()) < 15) {
+            if (Math.abs(currentX - point.getPointX()) < 20 && Math.abs(currentY - point.getPointY()) < 20) {
+                Log.d("add", "____________________________" + (currentX - point.getPointX()));
+                Log.d("add", "____________________________" + (currentY - point.getPointY()));
 
+                int addIndex = getPointIndex(point);
                 List<Point> list = getAdjoinPoint(point);
-                float c=((list.get(1).getPointX()-list.get(0).getPointX())/2)+list.get(0).getPointX();
-                float d=((list.get(2).getPointX()-list.get(1).getPointX())/2)+list.get(1).getPointX();
+                Log.d("add", list.size() + ":____________________________index:" + addIndex);
+                float c = ((list.get(1).getPointX() - list.get(0).getPointX()) / 2) + list.get(0).getPointX();
+                float d = ((list.get(2).getPointX() - list.get(1).getPointX()) / 2) + list.get(1).getPointX();
 
-                addPointList.add(1,new Point(c,list.get(0).getPointY()));
-                addPointList.add(3,new Point(d,list.get(0).getPointY()));
+                addPointList.add(addIndex, new Point(c, list.get(0).getPointY()));
+                addPointList.add(addIndex + 2, new Point(d, list.get(0).getPointY()));
+
+//                pointList.add(addIndex,new Point(c,list.get(0).getPointY()));
+//                pointList.add(addIndex+2,new Point(d,list.get(0).getPointY()));
+
                 postInvalidate();
-                return;
-//                for (Point point1 : list) {
-//                    Log.d("aaaaaa", point1+"_______");
-//                    float a1 = ((endX - startX) / 2) + startX;
-//
-//
-//                }
+                for (Point point1 : list) {
+                    Log.d("ccccccc", "____________________________" + point1);
 
+                }
+                return;
             }
         }
 
@@ -352,11 +370,9 @@ public class MoveAndCropRectView extends View {
     }
 
     private List<Point> getAdjoinPoint(Point point) {
-
         List<Point> list = new ArrayList<>();
         for (int i = 0; i < pointList.size(); i++) {
-            if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < 15 && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < 15) {
-
+            if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < 20 && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < 20) {
                 list.add(pointList.get(i - 1));
                 list.add(pointList.get(i));
                 list.add(pointList.get(i + 1));
@@ -364,6 +380,21 @@ public class MoveAndCropRectView extends View {
         }
 
         return list;
+    }
+
+    /**
+     * 得到点击点的index
+     *
+     * @param point
+     * @return
+     */
+    private int getPointIndex(Point point) {
+        for (int i = 0; i < pointList.size(); i++) {
+            if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < 20 && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < 20) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     /*刷新矩形的坐标*/
