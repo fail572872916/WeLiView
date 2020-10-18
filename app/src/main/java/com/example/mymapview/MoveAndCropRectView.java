@@ -193,36 +193,36 @@ public class MoveAndCropRectView extends View {
         canvas.drawCircle(endX, startY, 15, mCirclePaint);
 
 
+        addPointList.clear();
+//        if(MODE!=MODE_INSIDE) {
 
-
-
-
-        float a1 = ((endX - startX) / 2) + startX;
-        float a2 = ((endY - startY) / 2) + startY;
-        Log.d("sssss", a2 + "__" + startX + "______" + endX);
+            float a1 = ((endX - startX) / 2) + startX;
+            float a2 = ((endY - startY) / 2) + startY;
+            Log.d("sssss", a2 + "__" + startX + "______" + endX);
 //        canvas.drawCircle(a1, startY, 20, mAddPaint);
 //        canvas.drawCircle(endX, a2, 20, mAddPaint);
 //        canvas.drawCircle(a1, endY, 20, mAddPaint);
 //        canvas.drawCircle(startX, a2, 20, mAddPaint);
 
-        addPointList.add(new Point(a1, startY));
-        addPointList.add(new Point(endX, a2));
-        addPointList.add(new Point(a1, endY));
-        addPointList.add(new Point(startX, a2));
+            addPointList.add(new Point(a1, startY));
+            addPointList.add(new Point(endX, a2));
+            addPointList.add(new Point(a1, endY));
+            addPointList.add(new Point(startX, a2));
 
 
-        pointList.add(new Point(startX, startY));
-        pointList.add(new Point(a1, startY));
-        pointList.add(new Point(endX, endY));
-        pointList.add(new Point(endX, a2));
-        pointList.add(new Point(startX, endY));
-        pointList.add(new Point(a1, endY));
-        pointList.add(new Point(endX, startY));
-        pointList.add(new Point(startX, a2));
+            pointList.add(new Point(startX, startY));
+            pointList.add(new Point(a1, startY));
+            pointList.add(new Point(endX, endY));
+            pointList.add(new Point(endX, a2));
+            pointList.add(new Point(startX, endY));
+            pointList.add(new Point(a1, endY));
+            pointList.add(new Point(endX, startY));
+            pointList.add(new Point(startX, a2));
+//        }
+            for (Point point : addPointList) {
+                canvas.drawCircle(point.getPointX(), point.getPointY(), 15, mAddPaint);
+            }
 
-        for (Point point : addPointList) {
-            canvas.drawCircle(point.getPointX(), point.getPointY(), 15, mAddPaint);
-        }
 
     }
 
