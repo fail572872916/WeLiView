@@ -222,10 +222,9 @@ public class MoveAndCropRectView extends View {
 //
             pointList.add(new Point(startX, endY));
             pointList.add(new Point(startX, a2));
+            pointList.add(new Point(startX, startY));
         }
-        for (Point point : pointList) {
-            Log.d("add", "____________________________" + point);
-        }
+
         for (Point point : addPointList) {
             canvas.drawCircle(point.getPointX(), point.getPointY(), 20, mAddPaint);
         }
@@ -335,10 +334,10 @@ public class MoveAndCropRectView extends View {
     private void addPoint(float currentX, float currentY) {
         MODE = MODE_ADD;
 //        Log.d("aaaaaa", "____________________________" + pointList.size());
-        for (Point point : addPointList) {
-            Log.d("add", "____________________________" + point);
-
-        }
+//        for (Point point : addPointList) {
+//            Log.d("add", "____________________________" + point);
+//
+//        }
         Log.d("add", "____________________________" + new Point(currentX, currentY));
         for (Point point : addPointList) {
 
@@ -348,13 +347,27 @@ public class MoveAndCropRectView extends View {
 
                 int addIndex = getPointIndex(point);
                 List<Point> list = getAdjoinPoint(point);
-                Log.d("add", list.size() + ":____________________________index:" + addIndex);
-                float c = ((list.get(1).getPointX() - list.get(0).getPointX()) / 2) + list.get(0).getPointX();
-                float d = ((list.get(2).getPointX() - list.get(1).getPointX()) / 2) + list.get(1).getPointX();
+                Log.d("add", list.size() + ":_________index:" + addIndex+"_____:"+addPointList.size());
+                float a = ((list.get(1).getPointX() - list.get(0).getPointX()) / 2) + list.get(0).getPointX();
+                float b = ((list.get(2).getPointX() - list.get(1).getPointX()) / 2) + list.get(1).getPointX();
+                float c = ((list.get(1).getPointY() - list.get(0).getPointY()) / 2) + list.get(0).getPointY();
+                float d = ((list.get(2).getPointY() - list.get(1).getPointY()) / 2) + list.get(1).getPointY();
 
-                addPointList.add(addIndex, new Point(c, list.get(0).getPointY()));
-                addPointList.add(addIndex + 2, new Point(d, list.get(0).getPointY()));
+                if (list.get(0).getPointY() == list.get(1).getPointY()) {
+                    addPointList.add(addIndex, new Point(a, list.get(0).getPointY()));
 
+                }
+                if (list.get(1).getPointY() == list.get(2).getPointY()) {
+                    addPointList.add(addIndex + 2, new Point(b, list.get(0).getPointY()));
+                }
+
+                if (list.get(0).getPointX() == list.get(1).getPointX()) {
+                    addPointList.add(addIndex, new Point(list.get(0).getPointX(), c));
+                }
+
+                if (list.get(1).getPointX() == list.get(2).getPointX()) {
+                    addPointList.add(addIndex + 2, new Point(list.get(0).getPointX(), d));
+                }
 
 
                 postInvalidate();
@@ -375,7 +388,11 @@ public class MoveAndCropRectView extends View {
             if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < 20 && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < 20) {
                 list.add(pointList.get(i - 1));
                 list.add(pointList.get(i));
-                list.add(pointList.get(i + 1));
+//                if (i+1 >= pointList.size()) {
+//                    list.add(pointList.get(0));
+//                } else {
+                    list.add(pointList.get(i + 1));
+//                }
             }
         }
 
@@ -389,7 +406,7 @@ public class MoveAndCropRectView extends View {
      * @return
      */
     private int getPointIndex(Point point) {
-        for (int i = 0; i < pointList.size(); i++) {
+        for (int i = 0; i < addPointList.size(); i++) {
             if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < 20 && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < 20) {
                 return i;
             }
