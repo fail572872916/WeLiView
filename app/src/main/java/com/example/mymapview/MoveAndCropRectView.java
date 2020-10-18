@@ -195,22 +195,23 @@ public class MoveAndCropRectView extends View {
         canvas.drawCircle(startX, endY, 15, mCirclePaint);
 
 
-        if (MODE == MODE_INSIDE) {
-            addPointList.clear();
-        }
+
 //
 
         float a1 = ((endX - startX) / 2) + startX;
         float a2 = ((endY - startY) / 2) + startY;
 
+        if (MODE != MODE_ADD) {
+            addPointList.clear();
 
+        }
         addPointList.add(new Point(a1, startY));
         addPointList.add(new Point(endX, a2));
         addPointList.add(new Point(a1, endY));
         addPointList.add(new Point(startX, a2));
 
 //        Log.d("sssss", a2 + "__" + startX + "______" + endX);
-        Log.d("sssss", "__" + addPointList);
+
         if (MODE != MODE_ADD) {
             pointList.add(new Point(startX, startY));
             pointList.add(new Point(a1, startY));
@@ -224,8 +225,9 @@ public class MoveAndCropRectView extends View {
             pointList.add(new Point(startX, a2));
             pointList.add(new Point(startX, startY));
         }
-
+        Log.d("sssss", "__" + addPointList.size());
         for (Point point : addPointList) {
+
             canvas.drawCircle(point.getPointX(), point.getPointY(), 20, mAddPaint);
         }
 
@@ -257,7 +259,8 @@ public class MoveAndCropRectView extends View {
                     case MODE_OUTSIDE:
                         //do nothing;
                         break;
-                    case MODE_INSIDE://拖动
+                    case MODE_INSIDE://拖动.
+
                         moveByTouch(currentX, currentY);
                         postInvalidate();
                         break;
