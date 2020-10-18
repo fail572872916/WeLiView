@@ -217,9 +217,10 @@ public class MoveAndCropRectView extends View {
             pointList.add(new Point(endX, startY));
 
             pointList.add(new Point(endX, a2));
-            pointList.add(new Point(startX, endY));
-            pointList.add(new Point(a1, endY));
             pointList.add(new Point(endX, endY));
+            pointList.add(new Point(a1, endY));
+//
+            pointList.add(new Point(startX, endY));
             pointList.add(new Point(startX, a2));
         }
         for (Point point : pointList) {
@@ -354,8 +355,7 @@ public class MoveAndCropRectView extends View {
                 addPointList.add(addIndex, new Point(c, list.get(0).getPointY()));
                 addPointList.add(addIndex + 2, new Point(d, list.get(0).getPointY()));
 
-//                pointList.add(addIndex,new Point(c,list.get(0).getPointY()));
-//                pointList.add(addIndex+2,new Point(d,list.get(0).getPointY()));
+
 
                 postInvalidate();
                 for (Point point1 : list) {
