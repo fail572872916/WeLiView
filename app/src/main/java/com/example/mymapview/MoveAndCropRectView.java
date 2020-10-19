@@ -47,7 +47,7 @@ public class MoveAndCropRectView extends View {
     //线中间添加点的集合
     List<Point> addPointList = new ArrayList<>();
     List<Point> pointList = new ArrayList<>();
-    List<Point> dragPointList = new ArrayList<>();
+    //    List<Point> dragPointList = new ArrayList<>();
     List<Point> oldPointList = new ArrayList<>();
     List<Integer> indexMove = new ArrayList<>();
 
@@ -78,6 +78,8 @@ public class MoveAndCropRectView extends View {
 
     private float mCoverWidth;/*width of selection box*/
     private float mCoverHeight;/*height of selection box*/
+    private Point movePoint;
+    private int moveIndex;
 
     private static final int ACCURACY = 100;/*touch accuracy*/
     private int pointPosition;/*vertex of a rectangle*/
@@ -142,18 +144,10 @@ public class MoveAndCropRectView extends View {
         //具体的形状
         for (int i = 0; i < pointList.size(); i++) {
             if (i < pointList.size() - 1) {
-                addPointList.add(new Point(((pointList.get(i+1).getPointX()-pointList.get(i).getPointX())/2)+pointList.get(i).getPointX(),((pointList.get(i+1).getPointY()-pointList.get(i).getPointY())/2)+pointList.get(i).getPointY()));
+                addPointList.add(new Point(((pointList.get(i + 1).getPointX() - pointList.get(i).getPointX()) / 2) + pointList.get(i).getPointX(), ((pointList.get(i + 1).getPointY() - pointList.get(i).getPointY()) / 2) + pointList.get(i).getPointY()));
             }
         }
-        for (Point point : addPointList) {
-            Log.d("sssss", "ppppp:"+point);
-        }
-//        float a1 = ((endX - startX) / 2) + startX;
-//        float a2 = ((endY - startY) / 2) + startY;
-//        addPointList.add(new Point(a1, startY));
-//        addPointList.add(new Point(endX, a2));
-//        addPointList.add(new Point(a1, endY));
-//        addPointList.add(new Point(startX, a2));
+
     }
 
     @Override
@@ -168,17 +162,11 @@ public class MoveAndCropRectView extends View {
             mCoverWidth = mRectF.width();
             mCoverHeight = mRectF.height();
 
-//            float a1 = ((endX - startX) / 2) + startX;
-//            float a2 = ((endY - startY) / 2) + startY;
-            pointList.add(new Point(startX, startY));
-//            pointList.add(new Point(a1, startY));
-            pointList.add(new Point(endX, startY));
-//            pointList.add(new Point(endX, a2));
-            pointList.add(new Point(endX, endY));
-//            pointList.add(new Point(a1, endY));
 
+            pointList.add(new Point(startX, startY));
+            pointList.add(new Point(endX, startY));
+            pointList.add(new Point(endX, endY));
             pointList.add(new Point(startX, endY));
-//            pointList.add(new Point(startX, a2));
             pointList.add(new Point(startX, startY));
             //起始点-首位结合
 
@@ -186,12 +174,6 @@ public class MoveAndCropRectView extends View {
             copyOldPath();
             getAddPoint();
 
-            //添加可拖拽定点坐标
-            dragPointList.add(new Point(startX, startY));
-            dragPointList.add(new Point(endX, startY));
-            dragPointList.add(new Point(endX, endY));
-            dragPointList.add(new Point(startX, endY));
-            dragPointList.add(new Point(startX, startY));
             Log.d("sssss", "ppppp:");
         }
         if (mLocationListener != null) {
@@ -212,20 +194,8 @@ public class MoveAndCropRectView extends View {
             }
         }
 
-        if (MODE == MODE_POINT) {
-            Log.d("MoveAndCropRectView", "AA");
-            //起始点-首位结合
-            addPointList.clear();
-            for (int i = 0; i < pointList.size(); i++) {
-                if (i % 2 != 0) {
-                    addPointList.add(pointList.get(i));
-                }
-            }
 
-        }
-
-
-        Log.d("sssss", MODE + "__" + addPointList.size() + "__" + pointList.size() + "dragPointList:" + dragPointList.size());
+        Log.d("sssss", MODE + "__" + addPointList.size() + "__" + pointList.size());
 //        Log.d("sssss", );
         for (Point point : addPointList) {
 
@@ -236,7 +206,7 @@ public class MoveAndCropRectView extends View {
         }
 
 //        //回执定点之间的节点
-        for (Point point : dragPointList) {
+        for (Point point : pointList) {
             Log.d("ccccccc", "dragPointList:" + point);
             canvas.drawCircle(point.getPointX(), point.getPointY(), mRoundSize, mCirclePaint);
         }
@@ -250,8 +220,14 @@ public class MoveAndCropRectView extends View {
             case MotionEvent.ACTION_DOWN:
                 memoryX = event.getX();
                 memoryY = event.getY();
-//                checkMode(memoryX, memoryY);
+                checkMode(memoryX, memoryY);
                 copyOldPath();
+                for (int i = 0; i < pointList.size(); i++) {
+                    if (Math.abs(memoryX - pointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - pointList.get(i).getPointY()) < mRoundSize) {
+                        movePoint = pointList.get(i);
+                        moveIndex = i;
+                    }
+                }
                 mOldPaint.setColor(Color.BLACK);
                 Log.d("MoveAndCropRectView", "oleeeeeeeeeeeeeeee):" + oldPointList.get(1));
 
@@ -320,84 +296,42 @@ public class MoveAndCropRectView extends View {
         float dX = bx - memoryX;
         float dY = by - memoryY;
 
-        Log.d("MoveAndCropRectView", "dX:" + dX + "dY:" + dY);
-        if (Math.abs((int) dX) > Math.abs((int) dY)) {
-            dY = 0;
+        Log.d("MoveAndCropRectView", "移动：dX:" + dX + "dY:" + dY);
+
+        if (dX > 0) {
+            dX = 2;
         } else {
-            dX = 0;
+            dX = -2;
         }
+        if (dY > 0) {
+            dY = 2;
+        } else {
+            dY = -2;
+        }
+//        if (Math.abs((int) dX) > Math.abs((int) dY)) {
+//            dY = 0;
+//        } else {
+//            dX = 0;
+//        }
         //更改整体点中某一个
-        for (int i = 0; i < pointList.size(); i++) {
-            if (Math.abs(memoryX - pointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - pointList.get(i).getPointY()) < mRoundSize) {
-                pointList.get(i).setPointX(pointList.get(i).getPointX() + dX);
-                pointList.get(i).setPointY(pointList.get(i).getPointY() + dY);
-            }
-        }
 
-        //更改当前拖动的点
-        for (int i = 0; i < dragPointList.size(); i++) {
-            if (Math.abs(memoryX - dragPointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - dragPointList.get(i).getPointY()) < mRoundSize) {
-
-                dragPointList.get(i).setPointX(dragPointList.get(i).getPointX() + dX);
-                dragPointList.get(i).setPointY(dragPointList.get(i).getPointY() + dY);
-            }
-        }
+        movePoint.setPointX(movePoint.getPointX() + dX);
+        movePoint.setPointY(movePoint.getPointY() + dY);
+        pointList.set(moveIndex, movePoint);
         getAddPoint();
-//        getMoveIndex();
+
+
     }
 
-    private void getMoveIndex() {
-        indexMove.clear();
-        for (int i = 0; i < pointList.size(); i++) {
-            for (Point point1 : addPointList) {
-                if (pointList.get(i).getPointX() == point1.getPointX() && pointList.get(i).getPointY() == point1.getPointY())
-                    indexMove.add(i);
-            }
-        }
-    }
 
     private void addPoint(float currentX, float currentY) {
+
         for (Point point : addPointList) {
             if (Math.abs(currentX - point.getPointX()) < mRoundSize && Math.abs(currentY - point.getPointY()) < mRoundSize) {
                 int addIndex = getPointIndex(point);
-                List<Point> list = getAdjoinPoint(point);
-                Log.d("add", list.size() + ":_________index:" + addIndex + "_____:" + addPointList.size());
-                float a = ((list.get(1).getPointX() - list.get(0).getPointX()) / 2) + list.get(0).getPointX();
-                float b = ((list.get(2).getPointX() - list.get(1).getPointX()) / 2) + list.get(1).getPointX();
-                float c = ((list.get(1).getPointY() - list.get(0).getPointY()) / 2) + list.get(0).getPointY();
-                float d = ((list.get(2).getPointY() - list.get(1).getPointY()) / 2) + list.get(1).getPointY();
-
-
-                if (list.get(0).getPointY() == list.get(1).getPointY()) {
-                    addPointList.add(addIndex, new Point(a, list.get(0).getPointY()));
-                    pointList.add(getCountPoint2Index(point), new Point(a, list.get(1).getPointY()));
-
-                    dragPointList.add(addIndex, new Point(list.get(1).getPointX(), list.get(1).getPointY()));
-
-                }
-
-
-                if (list.get(1).getPointY() == list.get(2).getPointY()) {
-                    addPointList.add(addIndex + 2, new Point(b, list.get(0).getPointY()));
-                }
-
-                if (list.get(0).getPointX() == list.get(1).getPointX()) {
-                    addPointList.add(addIndex, new Point(list.get(0).getPointX(), c));
-                }
-
-                if (list.get(1).getPointX() == list.get(2).getPointX()) {
-                    if (addIndex + 2 >= addPointList.size()) {
-                        addPointList.add(new Point(list.get(0).getPointX(), d));
-                    } else {
-                        addPointList.add(addIndex + 2, new Point(list.get(0).getPointX(), d));
-                    }
-                    pointList.add(getCountPoint2Index(point) + 1, new Point(list.get(0).getPointX(), d));
-                    dragPointList.add(addIndex, new Point(list.get(1).getPointX(), list.get(1).getPointY()));
-                }
-                removeRepetition();
+                pointList.add(addIndex + 1, point);
+                getAddPoint();
                 postInvalidate();
-
-
                 return;
             }
         }
@@ -405,32 +339,6 @@ public class MoveAndCropRectView extends View {
 
     }
 
-    /**
-     * 删除添加点集合与可拖动定点的交叉点
-     */
-    private void removeRepetition() {
-        for (int i = 0; i < addPointList.size(); i++) {
-            for (Point point : dragPointList) {
-                if (addPointList.get(i).getPointX() == point.getPointX() && addPointList.get(i).getPointY() == point.getPointY()) {
-                    addPointList.remove(i);
-
-                }
-            }
-        }
-    }
-
-
-    private List<Point> getAdjoinPoint(Point point) {
-        List<Point> list = new ArrayList<>();
-        for (int i = 0; i < pointList.size(); i++) {
-            if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < mRoundSize && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < mRoundSize) {
-                list.add(pointList.get(i - 1));
-                list.add(pointList.get(i));
-                list.add(pointList.get(i + 1));
-            }
-        }
-        return list;
-    }
 
     /**
      * 判断添加点是否在其中
@@ -462,40 +370,10 @@ public class MoveAndCropRectView extends View {
         return 0;
     }
 
-    /**
-     * 得到完整路径中的下标
-     *
-     * @param point
-     * @return
-     */
-    private int getCountPoint2Index(Point point) {
-        for (int i = 0; i < pointList.size(); i++) {
-            Log.d("MoveAndCropRectView", "Math.abs:" + Math.abs(point.getPointX() - pointList.get(i).getPointX()) + "_____________" + pointList.get(i).getPointX() + "____________" + point.getPointX());
-            Log.d("MoveAndCropRectView", "Math.abs: " + (point.getPointY() - pointList.get(i).getPointY()) + "_____________" + pointList.get(i).getPointY() + "____________" + point.getPointY());
-            if (Math.abs(point.getPointX() - pointList.get(i).getPointX()) < mRoundSize && Math.abs(point.getPointY() - pointList.get(i).getPointY()) < mRoundSize) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-    /*刷新矩形的坐标*/
-    private void refreshLocation(float isx, float isy, float iex, float iey) {
-        this.startX = isx;
-        this.startY = isy;
-        this.endX = iex;
-        this.endY = iey;
-        mCoverWidth = endX - startX;
-        mCoverHeight = endY - startY;
-    }
-
-    /*检测矩形是否达到最小值*/
-    private boolean checkLegalRect(float cHeight, float cWidth) {
-        return (cHeight > minHeight && cWidth > minWidth);
-    }
 
     /*从非法状态恢复，这里处理的是达到最小值后能拉伸放大*/
     private void recoverFromIllegal(float rx, float ry) {
+
 
         if ((rx > startX && ry > startY) && (rx < endX && ry < endY)) {
             MODE = MODE_ILLEGAL;
@@ -551,10 +429,7 @@ public class MoveAndCropRectView extends View {
             point.setPointX(point.getPointX() + dX);
             point.setPointY(point.getPointY() + dY);
         }
-        for (Point point : dragPointList) {
-            point.setPointX(point.getPointX() + dX);
-            point.setPointY(point.getPointY() + dY);
-        }
+        getAddPoint();
 
 
         Log.d("MoveAndCropRectView:偏移量", "dX:" + dX + "____________dY:" + dY);
