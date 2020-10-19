@@ -64,11 +64,6 @@ public class MoveAndCropRectView extends View {
     private float endX;/*end X location*/
     private float endY;/*end Y location*/
 
-    private float oldStartX;/*start X location*/
-    private float oldStartY;/*start Y location*/
-    private float oldEndX;/*end X location*/
-    private float oldEndY;/*end Y location*/
-    List<Point> oldShape = new ArrayList<>();
 
     private float currentX;/*X coordinate values while finger press*/
     private float currentY;/*Y coordinate values while finger press*/
@@ -163,17 +158,8 @@ public class MoveAndCropRectView extends View {
             pointList.add(new Point(startX, startY));
             //起始点-首位结合
 
-
-            for (Point point : pointList) {
-                Point point1 = null;
-                try {
-                    point1 = (Point) point.clone();
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
-                }
-                oldPointList.add(point1);
-            }
-
+            //复制旧点
+            copyOldPath();
             addPointList.add(new Point(a1, startY));
             addPointList.add(new Point(endX, a2));
             addPointList.add(new Point(a1, endY));
@@ -226,6 +212,9 @@ public class MoveAndCropRectView extends View {
         for (Point point : pointList) {
             Log.d("MoveAndCropRectView", "point:" + point);
         }
+//        for (Point point : pointList) {
+//            point
+//        }
 
 //        //回执定点之间的节点
         for (Point point : dragPointList) {
@@ -243,25 +232,10 @@ public class MoveAndCropRectView extends View {
                 memoryX = event.getX();
                 memoryY = event.getY();
                 checkMode(memoryX, memoryY);
-                oldEndX = endX;
-                oldEndY = endY;
-                oldStartX = startX;
-                oldStartY = startY;
-
-
-                oldPointList = new ArrayList<>();
-                for (Point point : pointList) {
-                    Point point1 = null;
-                    try {
-                        point1 = (Point) point.clone();
-                    } catch (CloneNotSupportedException e) {
-                        e.printStackTrace();
-                    }
-                    oldPointList.add(point1);
-                }
+                //复制旧点
+                copyOldPath();
                 mOldPaint.setColor(Color.BLACK);
                 Log.d("MoveAndCropRectView", "oleeeeeeeeeeeeeeee):" + oldPointList.get(1));
-
 //                Log.d("MoveAndCropRectView", "oleeeeeeeeeeeeeeee):" + oldPointList.get(1));
                 break;
             case MotionEvent.ACTION_MOVE: {
@@ -322,7 +296,7 @@ public class MoveAndCropRectView extends View {
     /*点击顶点附近时的缩放处理*/
 
     private void moveByPoint(float bx, float by) {
-//  LogUtils.d("moveByPoint");
+
 
         float dX = bx - memoryX;
         float dY = by - memoryY;
@@ -371,13 +345,9 @@ public class MoveAndCropRectView extends View {
                 float b = ((list.get(2).getPointX() - list.get(1).getPointX()) / 2) + list.get(1).getPointX();
                 float c = ((list.get(1).getPointY() - list.get(0).getPointY()) / 2) + list.get(0).getPointY();
                 float d = ((list.get(2).getPointY() - list.get(1).getPointY()) / 2) + list.get(1).getPointY();
-
-
-
                 if (list.get(0).getPointY() == list.get(1).getPointY()) {
                     addPointList.add(addIndex, new Point(a, list.get(0).getPointY()));
                     pointList.add(getCountPoint2Index(point), new Point(a, list.get(1).getPointY()));
-
                     dragPointList.add(addIndex, new Point(list.get(1).getPointX(), list.get(1).getPointY()));
 
                 }
@@ -616,5 +586,18 @@ public class MoveAndCropRectView extends View {
         void locationRect(float startX, float startY, float endX, float endY);
     }
 
+    //复制旧点路径
+    private void copyOldPath() {
+        for (Point point : pointList) {
+            Point point1 = null;
+            try {
+                point1 = (Point) point.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+            oldPointList.add(point1);
+        }
+
+    }
 
 }
