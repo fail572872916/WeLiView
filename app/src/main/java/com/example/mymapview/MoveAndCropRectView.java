@@ -301,49 +301,27 @@ public class MoveAndCropRectView extends View {
     private void moveByPoint(float bx, float by) {
 //  LogUtils.d("moveByPoint");
         Log.d("MoveAndCropRectView", "bx:" + bx + "by:" + by);
-        getMoveIndex();
-//        switch (pointPosition) {
-//            case 0:/*left-up*/
-//                mCoverWidth = Math.abs(endX - bx);
-//                mCoverHeight = Math.abs(endY - by);
-//                //noinspection SuspiciousNameCombination
-//                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-//                    MODE = MODE_ILLEGAL;
-//                } else {
-//                    refreshLocation(bx, by, endX, endY);
-//                }
-//                break;
-//            case 1:/*right-up*/
-////                mCoverWidth = Math.abs(bx - startX);
-////                mCoverHeight = Math.abs(endY - by);
-////                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-////                    MODE = MODE_ILLEGAL;
-////                } else {
-//                refreshLocation(startX, by, bx, endY);
-////                }
-//                break;
-//            case 2:/*left-down*/
-//                mCoverWidth = Math.abs(endX - bx);
-//                mCoverHeight = Math.abs(by - startY);
-//                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-//                    MODE = MODE_ILLEGAL;
-//                } else {
-//                    refreshLocation(bx, startY, endX, by);
-//                }
-//                break;
-//            case 3:/*right-down*/
-//                mCoverWidth = Math.abs(bx - startX);
-//                mCoverHeight = Math.abs(by - startY);
-//                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-//                    MODE = MODE_ILLEGAL;
-//                } else {
-//                    refreshLocation(startX, startY, bx, by);
-//                }
-//                break;
-//            default:
-//                break;
-//        }
+        float dX = bx - memoryX;
+        float dY = by - memoryY;
 
+//        List<Point> point = getAdjoinPoint(new Point(memoryX, memoryY));
+
+//        List<Point> list = new ArrayList<>();
+        for (int i = 0; i < pointList.size(); i++) {
+            if (Math.abs(memoryX- pointList.get(i).getPointX()) < 30 && Math.abs(memoryY- pointList.get(i).getPointY()) < 30) {
+                Log.d("MoveAndCropRectView", "??????");
+                pointList.get(i).setPointX(pointList.get(i).getPointX() + dX);
+                pointList.get(i).setPointY(pointList.get(i).getPointY() + dY);
+            }
+        }
+        for (int i = 0; i < dragPointList.size(); i++) {
+            if (Math.abs(memoryX- dragPointList.get(i).getPointX()) < 30 && Math.abs(memoryY- dragPointList.get(i).getPointY()) < 30) {
+                Log.d("MoveAndCropRectView", "??????");
+                dragPointList.get(i).setPointX(dragPointList.get(i).getPointX() + dX);
+                dragPointList.get(i).setPointY(dragPointList.get(i).getPointY() + dY);
+            }
+        }
+//        getMoveIndex();
     }
 
     private void getMoveIndex() {
@@ -431,6 +409,15 @@ public class MoveAndCropRectView extends View {
         }
     }
 
+//    private Point getPoint(Point point1) {
+//        for (Point point : pointList) {
+//            if (Math.abs((point.getPointX() - point1.getPointX() < 30) && Math.abs((point.getPointY() - point1.getPointY() < 30))) {
+//                return point;
+//            }
+//        }
+//
+//        return new Point(0.0f, 0.0f);
+//    }
 
     private List<Point> getAdjoinPoint(Point point) {
         List<Point> list = new ArrayList<>();
@@ -480,7 +467,8 @@ public class MoveAndCropRectView extends View {
     }
 
     /**
-     *得到完整路径中的下标
+     * 得到完整路径中的下标
+     *
      * @param point
      * @return
      */
