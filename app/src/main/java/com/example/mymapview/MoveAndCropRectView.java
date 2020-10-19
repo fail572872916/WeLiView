@@ -28,28 +28,20 @@ public class MoveAndCropRectView extends View {
 
     private Paint mCirclePaint;
 
-    // 边缘字体
-    // private BorderedText mBorderedText;
-
     // 标题 或 名字
     private String mTitle;
     // 概率
     private float mConfidence;
 
-    // 矩形框 corner 的角度：直角、圆角
     private int mCornerAngle;
 
-    //直角 默认
-    public static final int RIGHT_CORNER = 0;
-    //圆角
-    public static final int ROUND_CORNER = 1;
 
     //线中间添加点的集合
     List<Point> addPointList = new ArrayList<>();
     List<Point> pointList = new ArrayList<>();
-    //    List<Point> dragPointList = new ArrayList<>();
+
     List<Point> oldPointList = new ArrayList<>();
-    List<Integer> indexMove = new ArrayList<>();
+
 
     // Remove Rect
     private int MODE;
@@ -64,11 +56,6 @@ public class MoveAndCropRectView extends View {
     private float endX;/*end X location*/
     private float endY;/*end Y location*/
 
-    private float oldStartX;/*start X location*/
-    private float oldStartY;/*start Y location*/
-    private float oldEndX;/*end X location*/
-    private float oldEndY;/*end Y location*/
-    List<Point> oldShape = new ArrayList<>();
 
     private float currentX;/*X coordinate values while finger press*/
     private float currentY;/*Y coordinate values while finger press*/
@@ -82,16 +69,13 @@ public class MoveAndCropRectView extends View {
     private int moveIndex;
 
     private static final int ACCURACY = 100;/*touch accuracy*/
-    private int pointPosition;/*vertex of a rectangle*/
 
-    private static final float minWidth = 100.0f;/*the minimum width of the rectangle*/
-    private static final float minHeight = 200.0f;/*the minimum height of the rectangle*/
 
     private static final float mRoundSize = 25.0f;/*the minimum height of the rectangle*/
 
     private onLocationListener mLocationListener;/*listen to the Rect */
 
-    private static final float EDGE_WIDTH = 1.8f;
+    private static final float DRAG_SPEED = 1.8f; //拖动时的速度
 
     public MoveAndCropRectView(Context context) {
         this(context, null);
@@ -193,17 +177,12 @@ public class MoveAndCropRectView extends View {
                 canvas.drawLine(oldPointList.get(i).getPointX(), oldPointList.get(i).getPointY(), oldPointList.get(i + 1).getPointX(), oldPointList.get(i + 1).getPointY(), mOldPaint);
             }
         }
-
-
         Log.d("sssss", MODE + "__" + addPointList.size() + "__" + pointList.size());
 //        Log.d("sssss", );
         for (Point point : addPointList) {
-
             canvas.drawCircle(point.getPointX(), point.getPointY(), mRoundSize, mAddPaint);
         }
-        for (Point point : pointList) {
-            Log.d("MoveAndCropRectView", "point:" + point);
-        }
+
 
 //        //回执定点之间的节点
         for (Point point : pointList) {
@@ -225,23 +204,23 @@ public class MoveAndCropRectView extends View {
                 for (int i = 0; i < pointList.size(); i++) {
                     if (Math.abs(memoryX - pointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - pointList.get(i).getPointY()) < mRoundSize) {
                         movePoint = pointList.get(i);
+//                        if (i == pointList.size() - 1) {
                         moveIndex = i;
-                    }
-                }
-                mOldPaint.setColor(Color.BLACK);
-                Log.d("MoveAndCropRectView", "oleeeeeeeeeeeeeeee):" + oldPointList.get(1));
+//                        }
 
-//                Log.d("MoveAndCropRectView", "oleeeeeeeeeeeeeeee):" + oldPointList.get(1));
+
+                    }
+
+                }
+
+                mOldPaint.setColor(Color.BLACK);
                 break;
             case MotionEvent.ACTION_MOVE: {
                 mOldPaint.setColor(Color.GRAY);
                 currentX = event.getX();
                 currentY = event.getY();
-
                 switch (MODE) {
-
                     case MODE_ILLEGAL:
-
                         recoverFromIllegal(currentX, currentY);
                         postInvalidate();
                         break;
@@ -255,29 +234,19 @@ public class MoveAndCropRectView extends View {
                         postInvalidate();
                         break;
                     default:
-
                         /*MODE_POINT*/
                         moveByPoint(currentX, currentY);
-
                         postInvalidate();
                         break;
-
                 }
-
             }
             break;
             case MotionEvent.ACTION_UP:
-
                 Log.d("MoveAndCropRectView", "沃天");
-
-
                 mOldPaint.setColor(Color.TRANSPARENT);
-
                 if (isContainPoint(new Point(memoryX, memoryY))) {
-
                     MODE = MODE_ADD;
                     addPoint(memoryX, memoryY);
-
                 }
                 postInvalidate();
                 break;
@@ -291,41 +260,37 @@ public class MoveAndCropRectView extends View {
     /*点击顶点附近时的缩放处理*/
 
     private void moveByPoint(float bx, float by) {
-//  LogUtils.d("moveByPoint");
+
 
         float dX = bx - memoryX;
         float dY = by - memoryY;
-
-        Log.d("MoveAndCropRectView", "移动：dX:" + dX + "dY:" + dY);
-
+        //拖动速度
         if (dX > 0) {
-            dX = 2;
+            dX = DRAG_SPEED;
         } else {
-            dX = -2;
+            dX = -DRAG_SPEED;
         }
         if (dY > 0) {
-            dY = 2;
+            dY = DRAG_SPEED;
         } else {
-            dY = -2;
+            dY = -DRAG_SPEED;
         }
-//        if (Math.abs((int) dX) > Math.abs((int) dY)) {
-//            dY = 0;
-//        } else {
-//            dX = 0;
-//        }
-        //更改整体点中某一个
 
+        //更改整体点中某一个
         movePoint.setPointX(movePoint.getPointX() + dX);
         movePoint.setPointY(movePoint.getPointY() + dY);
         pointList.set(moveIndex, movePoint);
+
+        //处理点击收尾部分问题
+        if (moveIndex == pointList.size() - 1) {
+            movePoint.setPointX(movePoint.getPointX() + dX);
+            movePoint.setPointY(movePoint.getPointY() + dY);
+            pointList.set(0, movePoint);
+        }
         getAddPoint();
-
-
     }
 
-
     private void addPoint(float currentX, float currentY) {
-
         for (Point point : addPointList) {
             if (Math.abs(currentX - point.getPointX()) < mRoundSize && Math.abs(currentY - point.getPointY()) < mRoundSize) {
                 int addIndex = getPointIndex(point);
@@ -335,10 +300,7 @@ public class MoveAndCropRectView extends View {
                 return;
             }
         }
-
-
     }
-
 
     /**
      * 判断添加点是否在其中
@@ -373,8 +335,6 @@ public class MoveAndCropRectView extends View {
 
     /*从非法状态恢复，这里处理的是达到最小值后能拉伸放大*/
     private void recoverFromIllegal(float rx, float ry) {
-
-
         if ((rx > startX && ry > startY) && (rx < endX && ry < endY)) {
             MODE = MODE_ILLEGAL;
         } else {
@@ -389,12 +349,17 @@ public class MoveAndCropRectView extends View {
      * @param cy
      */
     private void checkMode(float cx, float cy) {
+        Point point = new Point(cx, cy);
+
         if (cx > startX && cx < endX && cy > startY && cy < endY) {
             MODE = MODE_INSIDE;//矩形内部
-        } else if (nearbyPoint(cx, cy) < 4) {
+            Log.d("MoveAndCropRectView", ":偏移量juxi:矩形内部");
+        } else if (nearbyPoint(cx, cy)) {
             MODE = MODE_POINT;//矩形点上
+            Log.d("MoveAndCropRectView", "偏移量juxi:矩形点上");
         } else {
             MODE = MODE_OUTSIDE;//矩形外部
+            Log.d("MoveAndCropRectView", "偏移量juxi:矩形外部");
         }
     }
 
@@ -438,25 +403,13 @@ public class MoveAndCropRectView extends View {
     }
 
     /*判断点(inX,inY)是否靠近矩形的4个顶点*/
-    private int nearbyPoint(float floatX, float floatY) {
-        if ((Math.abs(startX - floatX) <= ACCURACY && (Math.abs(floatY - startY) <= ACCURACY))) {/*left-up angle*/
-            pointPosition = 0;
-            return 0;
+    private boolean nearbyPoint(float floatX, float floatY) {
+        for (Point point : pointList) {
+            if (Math.abs(floatX - point.getPointX()) < mRoundSize && Math.abs(floatY - point.getPointY()) < mRoundSize) {
+                return true;
+            }
         }
-        if ((Math.abs(endX - floatX) <= ACCURACY && (Math.abs(floatY - startY) <= ACCURACY))) {/*right-up angle*/
-            pointPosition = 1;
-            return 1;
-        }
-        if ((Math.abs(startX - floatX) <= ACCURACY && (Math.abs(floatY - endY) <= ACCURACY))) {/*left-down angle*/
-            pointPosition = 2;
-            return 2;
-        }
-        if ((Math.abs(endX - floatX) <= ACCURACY && (Math.abs(floatY - endY) <= ACCURACY))) {/*right-down angle*/
-            pointPosition = 3;
-            return 3;
-        }
-        pointPosition = 100;
-        return 100;
+        return false;
     }
 
     // 设置矩形框
