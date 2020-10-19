@@ -1,6 +1,10 @@
 package com.example.mymapview;
 
-public class Point {
+import androidx.annotation.NonNull;
+
+public class Point implements Cloneable  {
+
+
 
     private float pointX;
     private float pointY;
@@ -32,5 +36,11 @@ public class Point {
                 "pointX=" + pointX +
                 ", pointY=" + pointY +
                 '}';
+    }
+
+    @NonNull
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return (Point)super.clone();
     }
 }
