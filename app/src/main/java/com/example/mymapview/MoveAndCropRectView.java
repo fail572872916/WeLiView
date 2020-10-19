@@ -71,6 +71,7 @@ public class MoveAndCropRectView extends View {
     private float oldStartY;/*start Y location*/
     private float oldEndX;/*end X location*/
     private float oldEndY;/*end Y location*/
+    List<Point> oldShape=new ArrayList<>();
 
     private float currentX;/*X coordinate values while finger press*/
     private float currentY;/*Y coordinate values while finger press*/
@@ -171,23 +172,11 @@ public class MoveAndCropRectView extends View {
             mLocationListener.locationRect(startX, startY, endX, endY);
         }
 
-//  LogUtils.d("onDraw -- startX: " + startX);
-
-        canvas.drawLine(startX - EDGE_WIDTH, startY - EDGE_WIDTH,
-                endX + EDGE_WIDTH, startY - EDGE_WIDTH, mPaint);/*top 上边框-*/
-
-        canvas.drawLine(startX - EDGE_WIDTH, endY + EDGE_WIDTH,
-                endX + EDGE_WIDTH, endY + EDGE_WIDTH, mPaint);/*bottom -*/
-
-
-        canvas.drawLine(startX - EDGE_WIDTH, startY - EDGE_WIDTH,
-                startX - EDGE_WIDTH, endY + EDGE_WIDTH, mPaint);/*left |*/
-
-
-        canvas.drawLine(endX + EDGE_WIDTH, startY - EDGE_WIDTH,
-                endX + EDGE_WIDTH, endY + EDGE_WIDTH, mPaint);/*right |*/
-
-
+        for (int i = 0; i < pointList.size(); i++) {
+            if (i < pointList.size() - 1) {
+                canvas.drawLine(pointList.get(i).getPointX(), pointList.get(i).getPointY(), pointList.get(i + 1).getPointX(), pointList.get(i + 1).getPointY(), mPaint);
+            }
+        }
         canvas.drawLine(oldStartX - EDGE_WIDTH, oldStartY - EDGE_WIDTH,
                 oldEndX + EDGE_WIDTH, oldStartY - EDGE_WIDTH, mOldPaint);/*top 上边框-*/
         canvas.drawLine(oldStartX - EDGE_WIDTH, oldEndY + EDGE_WIDTH,
@@ -217,7 +206,6 @@ public class MoveAndCropRectView extends View {
                 }
             }
         }
-
 
 
         Log.d("sssss", MODE + "__" + addPointList.size() + "__" + pointList.size());
@@ -297,47 +285,47 @@ public class MoveAndCropRectView extends View {
 //  LogUtils.d("moveByPoint");
         Log.d("MoveAndCropRectView", "bx:" + bx + "by:" + by);
         getMoveIndex();
-        switch (pointPosition) {
-            case 0:/*left-up*/
-                mCoverWidth = Math.abs(endX - bx);
-                mCoverHeight = Math.abs(endY - by);
-                //noinspection SuspiciousNameCombination
-                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-                    MODE = MODE_ILLEGAL;
-                } else {
-                    refreshLocation(bx, by, endX, endY);
-                }
-                break;
-            case 1:/*right-up*/
-                mCoverWidth = Math.abs(bx - startX);
-                mCoverHeight = Math.abs(endY - by);
-                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-                    MODE = MODE_ILLEGAL;
-                } else {
-                    refreshLocation(startX, by, bx, endY);
-                }
-                break;
-            case 2:/*left-down*/
-                mCoverWidth = Math.abs(endX - bx);
-                mCoverHeight = Math.abs(by - startY);
-                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-                    MODE = MODE_ILLEGAL;
-                } else {
-                    refreshLocation(bx, startY, endX, by);
-                }
-                break;
-            case 3:/*right-down*/
-                mCoverWidth = Math.abs(bx - startX);
-                mCoverHeight = Math.abs(by - startY);
-                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
-                    MODE = MODE_ILLEGAL;
-                } else {
-                    refreshLocation(startX, startY, bx, by);
-                }
-                break;
-            default:
-                break;
-        }
+//        switch (pointPosition) {
+//            case 0:/*left-up*/
+//                mCoverWidth = Math.abs(endX - bx);
+//                mCoverHeight = Math.abs(endY - by);
+//                //noinspection SuspiciousNameCombination
+//                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
+//                    MODE = MODE_ILLEGAL;
+//                } else {
+//                    refreshLocation(bx, by, endX, endY);
+//                }
+//                break;
+//            case 1:/*right-up*/
+////                mCoverWidth = Math.abs(bx - startX);
+////                mCoverHeight = Math.abs(endY - by);
+////                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
+////                    MODE = MODE_ILLEGAL;
+////                } else {
+//                refreshLocation(startX, by, bx, endY);
+////                }
+//                break;
+//            case 2:/*left-down*/
+//                mCoverWidth = Math.abs(endX - bx);
+//                mCoverHeight = Math.abs(by - startY);
+//                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
+//                    MODE = MODE_ILLEGAL;
+//                } else {
+//                    refreshLocation(bx, startY, endX, by);
+//                }
+//                break;
+//            case 3:/*right-down*/
+//                mCoverWidth = Math.abs(bx - startX);
+//                mCoverHeight = Math.abs(by - startY);
+//                if (!checkLegalRect(mCoverWidth, mCoverHeight)) {
+//                    MODE = MODE_ILLEGAL;
+//                } else {
+//                    refreshLocation(startX, startY, bx, by);
+//                }
+//                break;
+//            default:
+//                break;
+//        }
 
     }
 
@@ -350,7 +338,6 @@ public class MoveAndCropRectView extends View {
             }
         }
     }
-
 
 
     private void addPoint(float currentX, float currentY) {
@@ -518,6 +505,10 @@ public class MoveAndCropRectView extends View {
             startY = endY - mCoverHeight;
         }
         for (Point point : addPointList) {
+            point.setPointX(point.getPointX() + dX);
+            point.setPointY(point.getPointY() + dY);
+        }
+        for (Point point : pointList) {
             point.setPointX(point.getPointX() + dX);
             point.setPointY(point.getPointY() + dY);
         }
