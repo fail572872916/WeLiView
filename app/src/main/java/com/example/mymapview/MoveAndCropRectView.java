@@ -137,6 +137,25 @@ public class MoveAndCropRectView extends View {
 
     private boolean firstDraw = true;
 
+    private void getAddPoint() {
+        addPointList.clear();
+        //具体的形状
+        for (int i = 0; i < pointList.size(); i++) {
+            if (i < pointList.size() - 1) {
+                addPointList.add(new Point(((pointList.get(i+1).getPointX()-pointList.get(i).getPointX())/2)+pointList.get(i).getPointX(),((pointList.get(i+1).getPointY()-pointList.get(i).getPointY())/2)+pointList.get(i).getPointY()));
+            }
+        }
+        for (Point point : addPointList) {
+            Log.d("sssss", "ppppp:"+point);
+        }
+//        float a1 = ((endX - startX) / 2) + startX;
+//        float a2 = ((endY - startY) / 2) + startY;
+//        addPointList.add(new Point(a1, startY));
+//        addPointList.add(new Point(endX, a2));
+//        addPointList.add(new Point(a1, endY));
+//        addPointList.add(new Point(startX, a2));
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -149,35 +168,24 @@ public class MoveAndCropRectView extends View {
             mCoverWidth = mRectF.width();
             mCoverHeight = mRectF.height();
 
-            float a1 = ((endX - startX) / 2) + startX;
-            float a2 = ((endY - startY) / 2) + startY;
+//            float a1 = ((endX - startX) / 2) + startX;
+//            float a2 = ((endY - startY) / 2) + startY;
             pointList.add(new Point(startX, startY));
-            pointList.add(new Point(a1, startY));
+//            pointList.add(new Point(a1, startY));
             pointList.add(new Point(endX, startY));
-            pointList.add(new Point(endX, a2));
+//            pointList.add(new Point(endX, a2));
             pointList.add(new Point(endX, endY));
-            pointList.add(new Point(a1, endY));
+//            pointList.add(new Point(a1, endY));
 
             pointList.add(new Point(startX, endY));
-            pointList.add(new Point(startX, a2));
+//            pointList.add(new Point(startX, a2));
             pointList.add(new Point(startX, startY));
             //起始点-首位结合
 
+            //初始旧点
+            copyOldPath();
+            getAddPoint();
 
-            for (Point point : pointList) {
-                Point point1 = null;
-                try {
-                    point1 = (Point) point.clone();
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
-                }
-                oldPointList.add(point1);
-            }
-
-            addPointList.add(new Point(a1, startY));
-            addPointList.add(new Point(endX, a2));
-            addPointList.add(new Point(a1, endY));
-            addPointList.add(new Point(startX, a2));
             //添加可拖拽定点坐标
             dragPointList.add(new Point(startX, startY));
             dragPointList.add(new Point(endX, startY));
@@ -242,23 +250,8 @@ public class MoveAndCropRectView extends View {
             case MotionEvent.ACTION_DOWN:
                 memoryX = event.getX();
                 memoryY = event.getY();
-                checkMode(memoryX, memoryY);
-                oldEndX = endX;
-                oldEndY = endY;
-                oldStartX = startX;
-                oldStartY = startY;
-
-
-                oldPointList = new ArrayList<>();
-                for (Point point : pointList) {
-                    Point point1 = null;
-                    try {
-                        point1 = (Point) point.clone();
-                    } catch (CloneNotSupportedException e) {
-                        e.printStackTrace();
-                    }
-                    oldPointList.add(point1);
-                }
+//                checkMode(memoryX, memoryY);
+                copyOldPath();
                 mOldPaint.setColor(Color.BLACK);
                 Log.d("MoveAndCropRectView", "oleeeeeeeeeeeeeeee):" + oldPointList.get(1));
 
@@ -340,6 +333,7 @@ public class MoveAndCropRectView extends View {
                 pointList.get(i).setPointY(pointList.get(i).getPointY() + dY);
             }
         }
+
         //更改当前拖动的点
         for (int i = 0; i < dragPointList.size(); i++) {
             if (Math.abs(memoryX - dragPointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - dragPointList.get(i).getPointY()) < mRoundSize) {
@@ -348,6 +342,7 @@ public class MoveAndCropRectView extends View {
                 dragPointList.get(i).setPointY(dragPointList.get(i).getPointY() + dY);
             }
         }
+        getAddPoint();
 //        getMoveIndex();
     }
 
@@ -371,7 +366,6 @@ public class MoveAndCropRectView extends View {
                 float b = ((list.get(2).getPointX() - list.get(1).getPointX()) / 2) + list.get(1).getPointX();
                 float c = ((list.get(1).getPointY() - list.get(0).getPointY()) / 2) + list.get(0).getPointY();
                 float d = ((list.get(2).getPointY() - list.get(1).getPointY()) / 2) + list.get(1).getPointY();
-
 
 
                 if (list.get(0).getPointY() == list.get(1).getPointY()) {
@@ -614,6 +608,20 @@ public class MoveAndCropRectView extends View {
 
     public interface onLocationListener {
         void locationRect(float startX, float startY, float endX, float endY);
+    }
+
+    //复制旧点路径
+    private void copyOldPath() {
+        oldPointList.clear();
+        for (Point point : pointList) {
+            Point point1 = null;
+            try {
+                point1 = (Point) point.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+            oldPointList.add(point1);
+        }
     }
 
 
