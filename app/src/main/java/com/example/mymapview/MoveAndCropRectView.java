@@ -25,14 +25,15 @@ public class MoveAndCropRectView extends View {
     private Paint mPaint;
     private Paint mOldPaint;
     private Paint mAddPaint;
-    private RectF mRectF;
-
-    private RectF mRectFOld;
-
     private Paint mCirclePaint;
-
     private Paint mInteriorCirclePaint;
     private Paint mTextPaint;
+
+    private RectF mRectF;
+
+
+
+
     // 概率
     private float mConfidence;
 
@@ -96,7 +97,7 @@ public class MoveAndCropRectView extends View {
         mInteriorCirclePaint = new Paint();
         mAddPaint = new Paint();
         mRectF = new RectF();
-        mRectFOld = new RectF();
+
 
         //画笔设置空心
         mPaint.setStyle(Paint.Style.STROKE);
