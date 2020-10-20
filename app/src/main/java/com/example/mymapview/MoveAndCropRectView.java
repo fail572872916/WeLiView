@@ -6,11 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Typeface;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -28,12 +31,10 @@ public class MoveAndCropRectView extends View {
 
     private Paint mCirclePaint;
 
-    // 标题 或 名字
-    private String mTitle;
+    private Paint mInteriorCirclePaint;
+    private Paint mTextPaint;
     // 概率
     private float mConfidence;
-
-    private int mCornerAngle;
 
 
     //线中间添加点的集合
@@ -51,10 +52,10 @@ public class MoveAndCropRectView extends View {
     private static final int MODE_ILLEGAL = 0X000000dd;/*221*/
     private static final int MODE_ADD = 0X000000ee;/*221*/
 
-    private float startX;/*start X location*/
-    private float startY;/*start Y location*/
-    private float endX;/*end X location*/
-    private float endY;/*end Y location*/
+    private float startX; //x轴起点
+    private float startY;//y轴起点
+    private float endX;//x轴终点
+    private float endY;//y轴终点
 
 
     private float currentX;/*X coordinate values while finger press*/
@@ -67,8 +68,6 @@ public class MoveAndCropRectView extends View {
     private float mCoverHeight;/*height of selection box*/
     private Point movePoint;
     private int moveIndex;
-
-    private static final int ACCURACY = 100;/*touch accuracy*/
 
 
     private static final float mRoundSize = 25.0f;/*the minimum height of the rectangle*/
@@ -94,28 +93,46 @@ public class MoveAndCropRectView extends View {
         mPaint = new Paint();
         mOldPaint = new Paint();
         mCirclePaint = new Paint();
+        mInteriorCirclePaint = new Paint();
         mAddPaint = new Paint();
         mRectF = new RectF();
         mRectFOld = new RectF();
 
         //画笔设置空心
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(Color.RED);
-        mPaint.setStrokeWidth(2);
+        mPaint.setColor(Color.parseColor("#AEEEEE"));
+        mPaint.setStrokeWidth(5);
         mPaint.setAntiAlias(true);
 
+
+        mInteriorCirclePaint.setStyle(Paint.Style.STROKE);
+        mInteriorCirclePaint.setColor(Color.parseColor("#00bbff"));
+        mInteriorCirclePaint.setStrokeWidth(8);
+        mInteriorCirclePaint.setAntiAlias(true);
+
         mCirclePaint.setStyle(Paint.Style.FILL);
-        mCirclePaint.setColor(Color.RED);
+//        mCirclePaint.setColor(Color.RED);
+        mCirclePaint.setColor(Color.parseColor("#BFEFFF"));
         mCirclePaint.setAntiAlias(true);
 
         mAddPaint.setStyle(Paint.Style.FILL);
-        mAddPaint.setColor(Color.BLUE);
+        mAddPaint.setColor(Color.parseColor("#EEC900"));
+
         mAddPaint.setAntiAlias(true);
 
         mOldPaint.setStyle(Paint.Style.STROKE);
         mOldPaint.setColor(Color.GRAY);
         mOldPaint.setStrokeWidth(5);
         mOldPaint.setAntiAlias(true);
+
+        mTextPaint = new Paint();
+        mCirclePaint.setStyle(Paint.Style.FILL);
+        mTextPaint.setColor(Color.parseColor("#F7F7F7"));
+//        Typeface font = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
+//        mTextPaint.setTypeface(font);//文字的样式(加粗)
+        mTextPaint.setFakeBoldText(true);
+
+        mTextPaint.setTextSize(30);
 
         currentX = 0;
         currentY = 0;
@@ -158,7 +175,7 @@ public class MoveAndCropRectView extends View {
             copyOldPath();
             getAddPoint();
 
-            Log.d("sssss", "ppppp:");
+
         }
         if (mLocationListener != null) {
             mLocationListener.locationRect(startX, startY, endX, endY);
@@ -168,6 +185,8 @@ public class MoveAndCropRectView extends View {
         for (int i = 0; i < pointList.size(); i++) {
             if (i < pointList.size() - 1) {
                 canvas.drawLine(pointList.get(i).getPointX(), pointList.get(i).getPointY(), pointList.get(i + 1).getPointX(), pointList.get(i + 1).getPointY(), mPaint);
+
+
             }
         }
 
@@ -177,17 +196,23 @@ public class MoveAndCropRectView extends View {
                 canvas.drawLine(oldPointList.get(i).getPointX(), oldPointList.get(i).getPointY(), oldPointList.get(i + 1).getPointX(), oldPointList.get(i + 1).getPointY(), mOldPaint);
             }
         }
-        Log.d("sssss", MODE + "__" + addPointList.size() + "__" + pointList.size());
-//        Log.d("sssss", );
+
         for (Point point : addPointList) {
             canvas.drawCircle(point.getPointX(), point.getPointY(), mRoundSize, mAddPaint);
+            // 居中画一个文字
+            float baseX =point.getPointX()-(mRoundSize/2);
+
+            // 计算Baseline绘制的Y坐标 ，计算方式：画布高度的一半 - 文字总高度的一半
+            float baseY =  point.getPointY()+(mRoundSize/2);
+            canvas.drawText("＋", baseX, baseY, mTextPaint);
         }
 
 
 //        //回执定点之间的节点
         for (Point point : pointList) {
-            Log.d("ccccccc", "dragPointList:" + point);
+
             canvas.drawCircle(point.getPointX(), point.getPointY(), mRoundSize, mCirclePaint);
+            canvas.drawCircle(point.getPointX(), point.getPointY(), mRoundSize / 2, mInteriorCirclePaint);
         }
     }
 
@@ -201,19 +226,15 @@ public class MoveAndCropRectView extends View {
                 memoryY = event.getY();
                 checkMode(memoryX, memoryY);
                 copyOldPath();
-                for (int i = 0; i < pointList.size(); i++) {
-                    if (Math.abs(memoryX - pointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - pointList.get(i).getPointY()) < mRoundSize) {
-                        movePoint = pointList.get(i);
-//                        if (i == pointList.size() - 1) {
-                        moveIndex = i;
-//                        }
-
-
-                    }
-
-                }
 
                 mOldPaint.setColor(Color.BLACK);
+                //添加线段之间的中间点
+                if (isContainPoint(new Point(memoryX, memoryY))) {
+                    MODE = MODE_ADD;
+                    addPoint(memoryX, memoryY);
+                }
+                getDragPoint();
+
                 break;
             case MotionEvent.ACTION_MOVE: {
                 mOldPaint.setColor(Color.GRAY);
@@ -242,18 +263,16 @@ public class MoveAndCropRectView extends View {
             }
             break;
             case MotionEvent.ACTION_UP:
-                Log.d("MoveAndCropRectView", "沃天");
+
                 mOldPaint.setColor(Color.TRANSPARENT);
-                if (isContainPoint(new Point(memoryX, memoryY))) {
-                    MODE = MODE_ADD;
-                    addPoint(memoryX, memoryY);
-                }
-                postInvalidate();
+
+
                 break;
             default:
+                mOldPaint.setColor(Color.TRANSPARENT);
                 break;
         }
-        Log.d("MoveAndCropRectView", "非法模式恢复" + event.getAction());
+
         return true;
     }
 
@@ -290,6 +309,24 @@ public class MoveAndCropRectView extends View {
         getAddPoint();
     }
 
+    /**
+     * 点击某个点进行拖拽时记录按下时的点位
+     */
+    private void getDragPoint() {
+        for (int i = 0; i < pointList.size(); i++) {
+            if (Math.abs(memoryX - pointList.get(i).getPointX()) < mRoundSize && Math.abs(memoryY - pointList.get(i).getPointY()) < mRoundSize) {
+                movePoint = pointList.get(i);
+                moveIndex = i;
+            }
+        }
+    }
+
+    /**
+     * 添加点
+     *
+     * @param currentX
+     * @param currentY
+     */
     private void addPoint(float currentX, float currentY) {
         for (Point point : addPointList) {
             if (Math.abs(currentX - point.getPointX()) < mRoundSize && Math.abs(currentY - point.getPointY()) < mRoundSize) {
@@ -417,16 +454,9 @@ public class MoveAndCropRectView extends View {
         this.mRectF = rectf;
     }
 
-    public void setTitle(String title) {
-        mTitle = title;
-    }
 
     public void setConfidence(float confidence) {
         mConfidence = confidence;
-    }
-
-    public void setCornerAngle(int cornerAngle) {
-        this.mCornerAngle = cornerAngle;
     }
 
 
