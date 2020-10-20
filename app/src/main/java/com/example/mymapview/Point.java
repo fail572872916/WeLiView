@@ -43,7 +43,7 @@ public class Point implements Cloneable  {
 
     @NonNull
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    public Object clone() throws CloneNotSupportedException {
         return (Point)super.clone();
     }
 }
