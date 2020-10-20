@@ -200,10 +200,10 @@ public class MoveAndCropRectView extends View {
         for (Point point : addPointList) {
             canvas.drawCircle(point.getPointX(), point.getPointY(), mRoundSize, mAddPaint);
             // 居中画一个文字
-            float baseX =point.getPointX()-(mRoundSize/2);
+            float baseX =point.getPointX()-(mRoundSize/2)-2;
 
             // 计算Baseline绘制的Y坐标 ，计算方式：画布高度的一半 - 文字总高度的一半
-            float baseY =  point.getPointY()+(mRoundSize/2);
+            float baseY =  point.getPointY()+(mRoundSize/2)-2;
             canvas.drawText("＋", baseX, baseY, mTextPaint);
         }
 
