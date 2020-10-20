@@ -34,8 +34,6 @@ public class MoveAndCropRectView extends View {
 
 
 
-    // 概率
-    private float mConfidence;
 
 
     //线中间添加点的集合
@@ -278,10 +276,7 @@ public class MoveAndCropRectView extends View {
     }
 
     /*点击顶点附近时的缩放处理*/
-
     private void moveByPoint(float bx, float by) {
-
-
         float dX = bx - memoryX;
         float dY = by - memoryY;
         //拖动速度
@@ -455,10 +450,6 @@ public class MoveAndCropRectView extends View {
         this.mRectF = rectf;
     }
 
-
-    public void setConfidence(float confidence) {
-        mConfidence = confidence;
-    }
 
 
     public void setLocationListener(onLocationListener mLocationListener) {
