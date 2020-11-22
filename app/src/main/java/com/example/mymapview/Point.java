@@ -9,6 +9,9 @@ public class Point implements Cloneable  {
     private float pointX;
     private float pointY;
 
+    public Point() {
+    }
+
     public Point(float pointX, float pointY) {
         this.pointX = pointX;
         this.pointY = pointY;
@@ -40,7 +43,7 @@ public class Point implements Cloneable  {
 
     @NonNull
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    public Object clone() throws CloneNotSupportedException {
         return (Point)super.clone();
     }
 }
