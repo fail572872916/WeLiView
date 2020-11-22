@@ -3,6 +3,8 @@ package com.example.mymapview;
 import android.os.Bundle;
 
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.views.graphics.CustomGraphicsView;
 
 public class PolygonActivity extends AppCompatActivity {
